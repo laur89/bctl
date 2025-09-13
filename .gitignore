@@ -1,0 +1,8 @@
+*.pyc
+*.swp
+build/
+dist/
+bctl.egg-info/
+.DS_Store
+.idea/
+

@@ -1,0 +1,36 @@
+[project]
+name = "bctl"
+version = "0.0.1.dev0"
+description = "service for simultaneously controlling brightness of laptop & external displays"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+keywords=['brightness', 'brightless-control', 'display-brightness', 'screen-brightness']
+dependencies = [
+    'click', 'tendo', 'aiofiles',
+    'pyudev', 'desktop-notify', 'pydash',
+    'dbus-next'  # note dbus-next is used by desktop-notify; preferrably we'd like to switch over to dbus-fast, see https://gitlab.com/hxss-linux/desktop-notify/-/issues/3
+]
+
+[build-system]
+requires = [
+    "setuptools>=80.9"
+]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+homepage = "https://github.com/laur89/bctl"
+
+[project.scripts]
+bctlsim = "bctl.bin.main_daemon_sim:main"
+bctl = "bctl.bin.main_client:main"
+bctld = "bctl.bin.main_daemon:main"
+
+[tool.zest-releaser]
+extra-message = "[CI SKIP]"
+# do not push to git remote:
+push-changes = false
+# do not release to pypi:
+release = false
+history_format = "md"
+

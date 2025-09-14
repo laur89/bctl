@@ -139,7 +139,7 @@ and down respectively; e.g.: `kill -s SIGUSR1 "$(pgrep -x bctld)"` or
 ## Configuration
 
 User configuration file is read from `$XDG_CONFIG_DIR/bctl/config.json`.
-For full config list see the [common.py](./bctl/common.py) file that defines the defaults,
+For full config list see the [config.py](./bctl/config.py) file that defines the defaults,
 but the most important ones you might want to consider changing are:
 
 | Config | Type | Default | Description |

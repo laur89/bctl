@@ -10,7 +10,8 @@ from typing import TypeVar
 from asyncio import Task
 from pathlib import Path
 from logging import Logger
-from .common import run_cmd, wait_and_reraise, Conf, SimConf
+from .common import run_cmd, wait_and_reraise
+from .config import Conf, SimConf
 from .exceptions import ExitableErr, FatalErr
 
 

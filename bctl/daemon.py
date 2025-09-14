@@ -21,7 +21,8 @@ from .display import (BackendType, DisplayType, Display,
                       SimulatedDisplay, DDCDisplay, BCTLDisplay,
                       BrilloDisplay, RawDisplay, TNonDDCDisplay, TDisplay)
 from .common import (load_config, write_state, run_cmd, same_values, assert_cmd_exist,
-                     wait_and_reraise, unix_time_now, Conf, SimConf)
+                     wait_and_reraise, unix_time_now)
+from .config import Conf, SimConf
 from .exceptions import ExitableErr, FatalErr
 from .notify import Notif
 

@@ -15,17 +15,21 @@ class State(TypedDict):
     last_set_brightness: int
 
 
-class NotifyConf(TypedDict):
-    enabled: bool
-    on_fatal_err: bool
+class NotifyIconConf(TypedDict):
     err_icon: str
-    icon_root: str
+    root_dir: str
     brightness_full: str
     brightness_high: str
     brightness_medium: str
     brightness_low: str
     brightness_off: str
+
+
+class NotifyConf(TypedDict):
+    enabled: bool
+    on_fatal_err: bool
     timeout_ms: int
+    icon: NotifyIconConf
 
 
 class Conf(TypedDict):
@@ -66,14 +70,16 @@ default_conf: Conf = {
     'notify': {
         'enabled': True,
         'on_fatal_err': True,  # whether desktop notifications should be shown on fatal errors
-        'err_icon': 'gtk-dialog-error',
-        'icon_root': '',
-        'brightness_full': 'notification-display-brightness-full.svg',
-        'brightness_high': 'notification-display-brightness-high.svg',
-        'brightness_medium': 'notification-display-brightness-medium.svg',
-        'brightness_low': 'notification-display-brightness-low.svg',
-        'brightness_off': 'notification-display-brightness-off.svg',
-        'timeout_ms': 4000
+        'timeout_ms': 4000,
+        'icon': {
+            'err_icon': 'gtk-dialog-error',
+            'root_dir': '',
+            'brightness_full': 'notification-display-brightness-full.svg',
+            'brightness_high': 'notification-display-brightness-high.svg',
+            'brightness_medium': 'notification-display-brightness-medium.svg',
+            'brightness_low': 'notification-display-brightness-low.svg',
+            'brightness_off': 'notification-display-brightness-off.svg'
+        }
     },
     'udev_event_debounce_sec': 3.0,  # both for debouncing & delay; have experienced missed ext. display detection w/ 1.0
     'msg_consumption_window_sec': 0.1,  # can be set to 0 if no delay/window is required

@@ -2,7 +2,7 @@
 
 import click
 import bctl.daemon as daemon
-from ..common import SimConf
+from ..config import SimConf
 
 @click.command
 @click.option(

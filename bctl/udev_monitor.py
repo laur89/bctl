@@ -1,8 +1,8 @@
 import asyncio
 import logging
+from logging import Logger
 from pyudev import Context, Device, Monitor
 from typing import AsyncGenerator, Awaitable, Callable
-from logging import Logger
 
 LOGGER: Logger = logging.getLogger(__name__)
 

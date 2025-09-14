@@ -150,7 +150,7 @@ but the most important ones you might want to consider changing are:
 | `sync_brightness` | bool | False | whether to keep screens' brightnesses in sync |
 | `main_display_ctl` | str | DDCUTIL | backend for brightness control |
 | `internal_display_ctl` | str | RAW | backend for controlling internal display |
-| `notify.icon_root` | str | '' | notification icon directory |
+| `notify.icon.root_dir` | str | '' | notification icon directory |
 | `fatal_exit_code` | int | 100 | error code daemon should exit with when restart shouldn't be attempted. you might want to use this value in systemd unit file w/ `RestartPreventExitStatus` config |
 
 #### `msg_consumption_window_sec`
@@ -181,12 +181,12 @@ brightness, as that's not what ddcutil does. Only in effect if
 `main_display_ctl=DDCUTIL` and we're running on a laptop. Available options are
 `RAW | BRIGHTNESSCTL | BRILLO`
 
-#### `notify.icon_root`
+#### `notify.icon.root_dir`
 
 Notification icon directory. Icon is chosen based on brightness level, and final used icon
-will be `notify.icon_root` + `notify.brightness_{full,high,medium,low,off}`.
+will be `notify.icon.root_dir` + `notify.icon.brightness_{full,high,medium,low,off}`.
 
 Note either half of final value may be an empty string, so if you want to use
-single icon for all levels, set icon full path to `notify.icon_root` and
-set `notify.brightness_{full,high,medium,low,off}` values to an empty string.
+single icon for all levels, set icon full path to `notify.icon.root_dir` and
+set `notify.icon.brightness_{full,high,medium,low,off}` values to an empty string.
 

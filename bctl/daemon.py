@@ -235,6 +235,8 @@ async def get_ddcutil_displays(ignore_internal) -> list[Display]:
 async def execute_tasks(tasks: list[list]) -> None:
     delta = 0
     target: int | None = None
+    init = False
+    sync = False
     for t in tasks:
         match t:
             case ['delta', d]:  # change brightness by delta %
@@ -243,9 +245,9 @@ async def execute_tasks(tasks: list[list]) -> None:
                 delta = 0  # cancel all previous deltas
                 target = value
             case ['init']:  # re-init displays
-                await init_displays()
+                init = True
             case ['sync']:
-                await sync_displays()
+                sync = True
             case ['term']:
                 try:
                     await write_state(CONF)
@@ -253,6 +255,11 @@ async def execute_tasks(tasks: list[list]) -> None:
                     sys.exit(0)
             case _:
                 LOGGER.error(f'unexpected task {t}')
+
+    if init:
+        await init_displays()
+    if sync:
+        await sync_displays()
 
     futures: list[Task[int]]
     if target is not None:

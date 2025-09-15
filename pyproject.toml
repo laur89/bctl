@@ -11,15 +11,29 @@ dependencies = [
     'pyudev', 'desktop-notify', 'pydash',
     'dbus-next'  # note dbus-next is used by desktop-notify; preferrably we'd like to switch over to dbus-fast, see https://gitlab.com/hxss-linux/desktop-notify/-/issues/3
 ]
+classifiers = [
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 5 - Production/Stable",
+
+  "Intended Audience :: End Users/Desktop",
+  "Topic :: System :: Hardware",
+
+  "Programming Language :: Python :: 3",
+  "Operating System :: POSIX :: Linux"
+]
+
+[project.urls]
+homepage = "https://github.com/laur89/bctl"
+issues = "https://github.com/laur89/bctl/issues"
 
 [build-system]
 requires = [
     "setuptools>=80.9"
 ]
 build-backend = "setuptools.build_meta"
-
-[project.urls]
-homepage = "https://github.com/laur89/bctl"
 
 [project.scripts]
 bctlsim = "bctl.bin.main_daemon_sim:main"

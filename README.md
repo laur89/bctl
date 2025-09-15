@@ -136,6 +136,21 @@ sending said signals to the daemon process allows bumping brightness up
 and down respectively; e.g.: `kill -s SIGUSR1 "$(pgrep -x bctld)"` or
 `killall -s SIGUSR1 bctld`
 
+### Socket
+
+The client and daemon communicate over a unix socket set via `socket_path` config.
+If using the provided client is too slow (e.g. for querying brightness), it's
+possible to talk to the daemon directly over this socket. For instance current 
+brightness can be fetched via following command, which is equivalent to `bctl get`:
+
+```sh
+$ socat - UNIX-CONNECT:/tmp/.bctld-ipc.sock <<< '["get",0,0]' | jq -r '.[1]'
+75
+```
+
+Please note there will be no guarantees about the stability of this api as it's
+part of internal comms spec.
+
 ## Configuration
 
 User configuration file is read from `$XDG_CONFIG_HOME/bctl/config.json`.
@@ -157,7 +172,7 @@ but the most important ones you might want to consider changing are:
 
 Defines an event consumption window, meaning if say 'brightness up' key is spammed
 5x during said window, ddcutil is invoked just once bumping up the brightness by
-5x<brightness_step> value, as opposed to running ddcutil 5x bumping
+5x<brightness_step> value, as opposed to running ddcutil 5 times bumping
 1x<brightness_step> each time.
 
 #### `main_display_ctl`

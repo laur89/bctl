@@ -16,7 +16,7 @@ class State(TypedDict):
 
 
 class NotifyIconConf(TypedDict):
-    err_icon: str
+    error: str
     root_dir: str
     brightness_full: str
     brightness_high: str
@@ -41,6 +41,7 @@ class Conf(TypedDict):
     monitor_udev: bool
     periodic_init_sec: int
     sync_brightness: bool
+    sync_strategy: str
     notify: NotifyConf
     udev_event_debounce_sec: float
     msg_consumption_window_sec: float
@@ -67,12 +68,14 @@ default_conf: Conf = {
     'monitor_udev': True,  # monitor udev events for drm subsystem to detect ext. display (dis)connections
     'periodic_init_sec': 0,  # periodically re-init/re-detect monitors; 0 to disable
     'sync_brightness': False,  # try to keep all displays' brightnesses at same value/synchronized
+    'sync_strategy': 'MEAN',  # if displays' brightnesses differ and are synced, what value to sync them to; only active if sync_brightness=True;
+                              # 'MEAN' = set to arithmetic mean, 'LOW' = set to lowest, 'HIGH' = set to highest
     'notify': {
         'enabled': True,
         'on_fatal_err': True,  # whether desktop notifications should be shown on fatal errors
         'timeout_ms': 4000,
         'icon': {
-            'err_icon': 'gtk-dialog-error',
+            'error': 'gtk-dialog-error',
             'root_dir': '',
             'brightness_full': 'notification-display-brightness-full.svg',
             'brightness_high': 'notification-display-brightness-high.svg',

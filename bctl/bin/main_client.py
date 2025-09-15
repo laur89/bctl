@@ -132,12 +132,12 @@ def sync(ctx):
 
 @main.command
 @click.pass_obj
-def term(ctx):
+def kill(ctx):
     """Terminate the daemon process.
 
     :param ctx: context
     """
-    ctx.send_cmd(['term'])
+    ctx.send_cmd(['kill'])
 
 
 if __name__ == '__main__':

@@ -14,6 +14,7 @@ from asyncio import AbstractEventLoop, Task, Queue
 from typing import NoReturn, Callable, Coroutine
 from tendo import singleton
 from pathlib import Path
+from statistics import fmean
 import aiofiles.os as aios
 from .debouncer import Debouncer
 from .udev_monitor import monitor_udev_events
@@ -92,12 +93,22 @@ async def init_displays() -> None:
 async def sync_displays() -> None:
     if len(DISPLAYS) <= 1: return
     values: list[int] = [d.get_brightness() for d in DISPLAYS]
+    if same_values(values): return
 
-    if not same_values(values):
-        last_brightness: int = CONF.get('state').get('last_set_brightness')
-        target: int = last_brightness if last_brightness != -1 else max(values)
-        LOGGER.debug(f'syncing brightnesses at {target}%')
-        await TASK_QUEUE.put(['set', target])
+    target: int = CONF.get('state').get('last_set_brightness')
+    if target == -1:  # i.e. we haven't explicitly set it to anything yet
+        match CONF.get('sync_strategy'):
+            case 'MEAN':
+                target = int(fmean(values))
+            case 'LOW':
+                target = min(values)
+            case 'HIGH':
+                target = max(values)
+            case _:
+                raise FatalErr(f'misconfigured brightness sync strategy [{CONF.get("sync_strategy")}]')
+
+    LOGGER.debug(f'syncing brightnesses at {target}%')
+    await TASK_QUEUE.put(['set', target])
 
 
 async def init_displays_sim(sim) -> None:
@@ -248,7 +259,7 @@ async def execute_tasks(tasks: list[list]) -> None:
                 init = True
             case ['sync']:
                 sync = True
-            case ['term']:
+            case ['kill']:
                 try:
                     await write_state(CONF)
                 finally:
@@ -359,7 +370,7 @@ async def delta_brightness(delta: int):
 
 async def terminate():
     LOGGER.info('placing termination request in queue')
-    await TASK_QUEUE.put(['term'])
+    await TASK_QUEUE.put(['kill'])
     # alternatively, ignore existing queue and terminate immediately:
     # try:
         # await write_state(CONF)

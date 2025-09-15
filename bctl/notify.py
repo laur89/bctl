@@ -31,7 +31,7 @@ class Notif:
         if self.notif is None or not self.conf.get('on_fatal_err'): return
 
         notify = self.notif.Notify('bctl', str(err))\
-            .set_icon(self.icon_conf.get('err_icon'))\
+            .set_icon(self.icon_conf.get('error'))\
             .set_timeout(0)
         await notify.show()
 

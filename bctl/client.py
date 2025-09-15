@@ -4,6 +4,7 @@ import sys
 import json
 from logging import Logger
 from .common import load_config
+from .config import Conf
 
 
 class Client(object):
@@ -13,7 +14,7 @@ class Client(object):
         self.logger: Logger = logging.getLogger(__name__)
         log_lvl = logging.DEBUG if debug else logging.INFO
         logging.basicConfig(stream=sys.stdout, level=log_lvl)
-        self.conf = load_config()
+        self.conf: Conf = load_config()
 
     async def _open_write_socket(self, cmd: list):
         try:

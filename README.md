@@ -3,7 +3,7 @@
 This is a simple daemon for controlling displays' brightnesses. It
 consists of a daemon process listening for user requests (e.g. changing brightness)
 and a client to send commands to the daemon. udev events are monitored
-for screen (dis)connections.
+for screen (dis)connections. Desktop notifications are shown on brightness change.
 
 ## Installation
 
@@ -151,7 +151,7 @@ but the most important ones you might want to consider changing are:
 | `main_display_ctl` | str | DDCUTIL | backend for brightness control |
 | `internal_display_ctl` | str | RAW | backend for controlling internal display |
 | `notify.icon.root_dir` | str | '' | notification icon directory |
-| `fatal_exit_code` | int | 100 | error code daemon should exit with when restart shouldn't be attempted. you might want to use this value in systemd unit file w/ `RestartPreventExitStatus` config |
+| `fatal_exit_code` | int | 100 | error code daemon should exit with when restart shouldn't be attempted. you might want to use this value in systemd unit file w/ [`RestartPreventExitStatus`](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#RestartPreventExitStatus=) config |
 
 #### `msg_consumption_window_sec`
 
@@ -190,3 +190,21 @@ Note either half of final value may be an empty string, so if you want to use
 single icon for all levels, set icon full path to `notify.icon.root_dir` and
 set `notify.icon.brightness_{full,high,medium,low,off}` values to an empty string.
 
+## Troubleshooting
+
+### External display (dis)connection not detected
+
+Current implementation relies on listening for `drm` subsystem `change` action
+udev events. Some graphic cards (and/or monitors, unsure) are known to either
+not emit said events, emit them only sometimes, or emit different ones. Recommend
+you try debugging it via running `$ udevadm monitor` that starts listening for udev
+events, then connect or disconnect your monitor and see what events are printed out.
+With that info feel free to open an issue.
+
+As a hacky workaround it's also possible to enable periodic polling by setting
+`periodic_init_sec` to seconds at which interval display detection should
+happen. Wouldn't set it to anything lower than 30.
+
+Additionally you may opt out of udev monitoring altoghether (see [config.py](./bctl/config.py)),
+and rely on your own custom detection; in that case daemon can be asked to
+re-initialize its state by sending init command via the client: `$ bctl init`

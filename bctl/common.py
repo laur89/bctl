@@ -50,10 +50,11 @@ def _load_state(file_loc: str) -> State:
 
 
 async def write_state(conf: Conf) -> None:
+    current_state: State = conf.get('state')
     data: State = {
         'timestamp': unix_time_now(),
         'ver': STATE_VER,
-        'last_set_brightness': conf.get('state').get('last_set_brightness')
+        'last_set_brightness': current_state.get('last_set_brightness')
     }
 
     try:

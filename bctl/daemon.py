@@ -285,27 +285,26 @@ async def execute_tasks(tasks: list[list]) -> None:
         number_tasks = f'{len(tasks)} task{"" if len(tasks) == 1 else "s"}'
         LOGGER.debug(f'about to execute() {number_tasks}...')
         await wait_and_reraise(futures)
-        results: list[int] = sorted([f.result() for f in futures])
+        brightnesses: list[int] = sorted([f.result() for f in futures])
         LOGGER.debug(f'...executed {number_tasks}')
 
-        # if same_values(results):  # there's consensus, store the brightness %
-        # len(results) == 1 or isclose(results[0], results[-1], abs_tol=1.0):  # brightness values' extremes differ max by 1.0
-        if len(results) == 1 or abs(results[0] - results[-1]) <= 1:  # brightness values' extremes differ max by 1%
-            CONF.get('state')['last_set_brightness'] = results[0]
+        if abs(brightnesses[0] - brightnesses[-1]) <= 2:  # brightness values' extremes differ max by 2%
+            CONF.get('state')['last_set_brightness'] = brightnesses[0]
 
-        await NOTIF.notify_change(results[0])
+        await NOTIF.notify_change(brightnesses[0])
         if CONF.get('sync_brightness'):
             await sync_displays()
 
 
 async def process_q() -> NoReturn:
+    consumption_window: float = CONF.get('msg_consumption_window_sec')
     while True:
         tasks: list[list] = []
         t: list = await TASK_QUEUE.get()
         tasks.append(t)
         while True:
             try:
-                t = await asyncio.wait_for(TASK_QUEUE.get(), CONF.get('msg_consumption_window_sec'))
+                t = await asyncio.wait_for(TASK_QUEUE.get(), consumption_window)
                 tasks.append(t)
             except TimeoutError:
                 break

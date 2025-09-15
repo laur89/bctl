@@ -92,13 +92,13 @@ default_conf: Conf = {
     'ignore_external_display': False,  # do not control external display(s) if available
     'main_display_ctl': 'DDCUTIL',  # RAW | DDCUTIL | BRIGHTNESSCTL | BRILLO
     'internal_display_ctl': 'RAW',  # RAW | BRIGHTNESSCTL | BRILLO;  only used if main_display_ctl=DDCUTIL and we're a laptop
-    'raw_device_dir': '/sys/class/backlight',  # used if (main_display_ctl=DDCUTIL and internal_display_ctl=RAW AND we're a laptop)
-                                                # OR main_display_ctl=RAW
+    'raw_device_dir': '/sys/class/backlight',  # used if main_display_ctl=RAW OR
+                                               # (main_display_ctl=DDCUTIL and internal_display_ctl=RAW AND we're a laptop)
     'fatal_exit_code': 100,  # exit code signifying fatal exit code, should not be retried;
-                                # you might want to use this value in systemd unit file w/ RestartPreventExitStatus config
+                             # you might want to use this value in systemd unit file w/ RestartPreventExitStatus config
     'socket_path': '/tmp/.bctld-ipc.sock',
     'sim': None,  # simulation config, will be set by sim client
     'state_f_path': '/tmp/.bctld.state',
-    'state': None  # will be read from state_f_path
+    'state': None  # do not set, will be read in from state_f_path
 }
 

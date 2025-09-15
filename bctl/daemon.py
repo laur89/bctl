@@ -377,7 +377,7 @@ def get_brightness(individual: bool, raw: bool) -> str:
         # return next((str(d.get_brightness(raw)) for d in DISPLAYS), '')
 
 
-async def periodic_init(period: int):
+async def periodic_init(period: int) -> NoReturn:
     delta_threshold_sec = period - 1 - CONF.get('msg_consumption_window_sec')
     while True:
         await asyncio.sleep(period)

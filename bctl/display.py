@@ -36,7 +36,7 @@ class Display(ABC):
         self.backend: BackendType = bt
         self.conf: Conf = conf
         self.name: str = 'UNKNOWN'
-        self.brightness: int = -1
+        self.brightness: int = -1  # note this holds the raw value, not necessarily %
         self.max_brightness: int = -1
         self.min_brightness: int = 0
         self.logger: Logger = logging.getLogger(f'{type(self).__name__}.{self.id}')

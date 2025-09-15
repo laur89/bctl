@@ -18,7 +18,7 @@ TIME_DIFF_DELTA_THRESHOLD_S = 60
 LOGGER: Logger = logging.getLogger(__name__)
 
 def _conf_path() -> str:
-    xdg_dir = os.environ.get('XDG_CONFIG_DIR', f'{os.environ["HOME"]}/.config')
+    xdg_dir = os.environ.get('XDG_CONFIG_HOME', f'{os.environ["HOME"]}/.config')
     return xdg_dir + '/bctl/config.json'
 
 
@@ -81,7 +81,7 @@ def _read_dict_from_file(file_loc: str) -> dict:
         with open(file_loc, 'r') as f:
             return json.load(f)
     except Exception as e:
-        LOGGER.error(f'error trying to read file {file_loc}')
+        LOGGER.error(f'error trying to parse json from {file_loc}')
         return {}
 
 

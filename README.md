@@ -7,7 +7,7 @@ for screen (dis)connections. Desktop notifications are shown on brightness chang
 
 ## Installation
 
-`$ pipx instal bctl`
+`$ pipx install bctl`
 
 Note this will install the client & daemon executables, but it's user
 responsibility to launch the daemon process, covered below.
@@ -121,7 +121,7 @@ $ systemctl --user enable --now bctld.service
 
 ### Client
 
-With demon running, the client is used to send commands to the daemon. List
+With daemon running, the client is used to send commands to the daemon. List
 available commands via `bctl --help`
 
 Some examples:

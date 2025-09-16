@@ -7,9 +7,7 @@ for screen (dis)connections. Desktop notifications are shown on brightness chang
 
 ## Installation
 
-~~`$ pipx instal bctl`~~  not published yet
-
-`$ pipx install git+ssh://git@github.com/laur89/bctl.git`
+`$ pipx instal bctl`
 
 Note this will install the client & daemon executables, but it's user
 responsibility to launch the daemon process, covered below.

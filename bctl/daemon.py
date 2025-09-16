@@ -312,12 +312,8 @@ async def process_q() -> NoReturn:
 
 
 async def process_client_commands() -> None:
-    def getvcp_payload_gen(futures: list[Task[str]], displays: list[DDCDisplay]) -> list[int|str]:
-        payload = [f'{displays[i].id},{j.result()}' for i, j in enumerate(futures)]
-        return [0, '\n'.join(payload)]
-
     async def process_client_command(reader, writer):
-        async def _send_response(payload: list, writer):
+        async def _send_response(payload: list):
             writer.write(json.dumps(payload).encode())
             await writer.drain()
             writer.write_eof()
@@ -337,7 +333,7 @@ async def process_client_commands() -> None:
                     payload = [1]
             else:
                 payload = [1, 'no DDC displays connected']
-            await _send_response(payload, writer)
+            await _send_response(payload)
 
         data = (await reader.read()).decode()
         if data:
@@ -346,14 +342,15 @@ async def process_client_commands() -> None:
             match data:
                 case ['get', individual, raw]:
                     try:
-                        payload = [0, get_brightness(individual, raw)]
+                        payload = [0, *get_brightness(individual, raw)]
                     except Exception:
                         payload = [1]
-                    await _send_response(payload, writer)
+                    await _send_response(payload)
                 case ['setvcp', *params]:
                     await vcp_op(lambda d: d._set_vcp_feature(*params), lambda *_: [0])
                 case ['getvcp', *params]:
-                    await vcp_op(lambda d: d._get_vcp_feature(*params), getvcp_payload_gen)
+                    await vcp_op(lambda d: d._get_vcp_feature(*params),
+                                 lambda futures, displays: [0, *[f'{displays[i].id},{j.result()}' for i, j in enumerate(futures)]])
                 case _:
                     LOGGER.debug(f'placing task in queue...')
                     await TASK_QUEUE.put(data)
@@ -378,13 +375,10 @@ async def terminate():
 
 
 # TODO: should we return CONF.get('state').get('last_set_brightness') for single display?
-def get_brightness(individual: bool, raw: bool) -> str:
+def get_brightness(individual: bool, raw: bool) -> list[str|int]:
     if individual:
-        values = [f'{d.id},{d.get_brightness(raw)}' for d in DISPLAYS]
-        return '\n'.join(values)
-    else:
-        return str(DISPLAYS[0].get_brightness(raw)) if DISPLAYS else ''
-        # return next((str(d.get_brightness(raw)) for d in DISPLAYS), '')
+        return [f'{d.id},{d.get_brightness(raw)}' for d in DISPLAYS]
+    return [DISPLAYS[0].get_brightness(raw)] if DISPLAYS else []
 
 
 async def periodic_init(period: int) -> NoReturn:

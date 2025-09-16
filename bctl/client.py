@@ -37,7 +37,9 @@ class Client(object):
         reader, writer = await self._open_write_socket(cmd)
 
         data = await reader.read()
-        [code, *rest] = json.loads(data.decode())
+        data = json.loads(data.decode())
+        self.logger.debug(f'received response {data} from daemon')
+        [code, *rest] = data
         outf = sys.stdout if code == 0 else sys.stderr
         for i in rest:
             print(i, file=outf)

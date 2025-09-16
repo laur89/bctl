@@ -38,8 +38,9 @@ class Client(object):
 
         data = await reader.read()
         [code, *rest] = json.loads(data.decode())
+        outf = sys.stdout if code == 0 else sys.stderr
         for i in rest:
-            print(i)
+            print(i, file=outf)
         await self._close_socket(writer)
         sys.exit(code)
 

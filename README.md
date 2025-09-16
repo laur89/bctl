@@ -95,7 +95,7 @@ Meaning it's best to choose one of the options, not both.
 As mentioned earlier, a daemon process needs to be started that keeps track of
 the displays. Easiest way to do so would be utilizing your OS's process
 manager. An example of a systemd user service file (e.g.
-`~/.config/systemd/user/bctld.conf`) would be:
+`~/.config/systemd/user/bctld.service`) would be:
 
 ```
 [Unit]
@@ -113,6 +113,12 @@ RestartPreventExitStatus=100
 
 [Install]
 WantedBy=graphical-session.target
+```
+
+Enable & start this unit by running
+
+```sh
+$ systemctl --user enable --now bctld.service
 ```
 
 ### Client
@@ -155,7 +161,7 @@ part of internal comms spec.
 
 User configuration file is read from `$XDG_CONFIG_HOME/bctl/config.json`.
 For full config list see the [config.py](./bctl/config.py) file that defines the defaults,
-but the most important ones you might want to consider changing are:
+but the most important ones you might want to be aware of or change are:
 
 | Config | Type | Default | Description |
 | --- | --- | --- | --- |

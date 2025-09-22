@@ -128,6 +128,8 @@ Some examples:
 
 - `bctl up` - bump brightness up by `brightness_step` config
 - `bctl down` - bump brightness down by `brightness_step` config
+- `bctl up 20` - bump brightness up by 20%
+- `bctl down 20` - bump brightness down by 20%
 - `bctl delta 20` - bump brightness up by 20%
 - `bctl delta -- -20` - bump brightness down by 20%
 - `bctl set 55` - set brightness to 55%
@@ -227,3 +229,8 @@ happen. Wouldn't set it to anything lower than 30.
 Additionally you may opt out of udev monitoring altoghether (see [config.py](./bctl/config.py)),
 and rely on your own custom detection; in that case daemon can be asked to
 re-initialize its state by sending init command via the client: `$ bctl init`
+
+
+## See also
+
+- https://github.com/orhun/i3-workspace-brightness

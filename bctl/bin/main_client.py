@@ -19,28 +19,28 @@ def main(ctx, debug):
 
 @main.command
 @click.pass_obj
-@click.argument('delta', type=int, default=5)
+@click.argument('delta', type=int, required=False)
 def up(ctx, delta):
     """Bump up screens' brightness.
 
     :param ctx: context
     :param delta: % delta to bump brightness up by
     """
-    assert delta > 0, 'brightness % to bump up by needs to be positive int'
-    ctx.send_cmd(['delta', delta])
+    assert delta is None or delta > 0, 'brightness % to bump up by needs to be positive int'
+    ctx.send_cmd(['up', delta])
 
 
 @main.command
 @click.pass_obj
-@click.argument('delta', type=int, default=5)
+@click.argument('delta', type=int, required=False)
 def down(ctx, delta):
     """Bump down screens' brightness.
 
     :param ctx: context
     :param delta: % delta to bump brightness down by
     """
-    assert delta > 0, 'brightness % to bump down by needs to be positive int'
-    ctx.send_cmd(['delta', -delta])
+    assert delta is None or delta > 0, 'brightness % to bump down by needs to be positive int'
+    ctx.send_cmd(['down', delta])
 
 
 @main.command

@@ -252,6 +252,12 @@ async def execute_tasks(tasks: list[list]) -> None:
         match t:
             case ['delta', d]:  # change brightness by delta %
                 delta += d
+            case ['up', v]:  # None | int>0
+                v = v if v is not None else CONF.get('brightness_step')
+                delta += v
+            case ['down', v]:  # None | int>0
+                v = v if v is not None else CONF.get('brightness_step')
+                delta -= v
             case ['set', value]:  # set brightness to a % value
                 delta = 0  # cancel all previous deltas
                 target = value

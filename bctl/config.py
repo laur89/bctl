@@ -1,3 +1,4 @@
+import os
 from typing import TypedDict
 
 
@@ -59,6 +60,17 @@ class Conf(TypedDict):
     state: State
 
 
+def _runtime_path() -> str:
+    xdg_dir = os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')
+    dir_path = xdg_dir + '/bctl'
+    if not os.path.isdir(dir_path):
+        os.makedirs(dir_path)
+    return dir_path
+
+
+RUNTIME_PATH = _runtime_path()
+
+
 default_conf: Conf = {
     'log_lvl': 'INFO',  # daemon log level, doesn't apply to the client
     'ddcutil_bus_path_prefix': '/dev/i2c-',  # prefix to the bus number
@@ -96,9 +108,9 @@ default_conf: Conf = {
                                                # (main_display_ctl=DDCUTIL AND internal_display_ctl=RAW AND we're a laptop)
     'fatal_exit_code': 100,  # exit code signifying fatal exit that should not be retried;
                              # you might want to use this value in systemd unit file w/ RestartPreventExitStatus config
-    'socket_path': '/tmp/.bctld-ipc.sock',
+    'socket_path': f'{RUNTIME_PATH}/bctld-ipc.sock',
     'sim': None,  # simulation config, will be set by sim client
-    'state_f_path': '/tmp/.bctld.state',  # state that should survive restarts are stored here
+    'state_f_path': f'{RUNTIME_PATH}/bctld.state',  # state that should survive restarts are stored here
     'state': None  # do not set, will be read in from state_f_path
 }
 

@@ -150,7 +150,7 @@ possible to talk to the daemon directly over this socket. For instance current
 brightness can be fetched via following command, which is equivalent to `bctl get`:
 
 ```sh
-$ socat - UNIX-CONNECT:/tmp/.bctld-ipc.sock <<< '["get",0,0]' | jq -re '.[1]'
+$ socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/bctl/bctld-ipc.sock <<< '["get",0,0]' | jq -re '.[1]'
 75
 ```
 

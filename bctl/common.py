@@ -28,7 +28,6 @@ EMPTY_STATE: State = {
     'last_set_brightness': -1
 }
 
-
 def load_config(load_state: bool = False) -> Conf:
     conf = py_.merge(default_conf, _read_dict_from_file(_conf_path()))
 

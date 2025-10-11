@@ -320,7 +320,7 @@ async def process_q() -> NoReturn:
 async def process_client_commands() -> None:
     async def process_client_command(reader, writer):
         async def _send_response(payload: list):
-            writer.write(json.dumps(payload).encode())
+            writer.write(json.dumps(payload, separators=(',', ':')).encode())
             await writer.drain()
             writer.write_eof()
             writer.close()

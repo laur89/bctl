@@ -57,15 +57,19 @@ def delta(ctx, delta):
 
 @main.command
 @click.pass_obj
-@click.argument('value', type=int)
+@click.argument('value', type=str)
 def set(ctx, value):
-    """Change screens' brightness to given %
+    """Change screens' brightness to/by given %
 
     :param ctx: context
-    :param value: % value to change brightness to
+    :param value: % value to change brightness to/by
     """
-    assert value >= 0, 'brightness % to set to needs to be >= 0'
-    ctx.send_cmd(['set', value])
+    if value.isdigit():
+        ctx.send_cmd(['set', int(value)])
+    elif value.startswith(('-', '+')) and value[1:].isdigit():
+        ctx.send_cmd(['delta', int(value)])
+    else:
+        raise ValueError('brightness value to set needs to be [-+]?[0-9]+')
 
 
 @main.command

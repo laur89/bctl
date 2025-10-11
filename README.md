@@ -132,6 +132,8 @@ Some examples:
 - `bctl down 20` - bump brightness down by 20%
 - `bctl delta 20` - bump brightness up by 20%
 - `bctl delta -- -20` - bump brightness down by 20%
+- `bctl set +20` - bump brightness up by 20%
+- `bctl set -- -20` - bump brightness down by 20%
 - `bctl set 55` - set brightness to 55%
 - `bctl get` - returns current brightness level in %
 - `bctl setvcp D6 01` - set vcp feature D6 to value 01 for all detected DDC displays;
@@ -152,6 +154,32 @@ brightness can be fetched via following command, which is equivalent to `bctl ge
 ```sh
 $ socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/bctl/bctld-ipc.sock <<< '["get",0,0]' | jq -re '.[1]'
 75
+```
+
+Likewise, for setting brightness you might define a shell function similar to:
+
+```sh
+# Sets the screens' brightness level
+#
+# @param {digit|string}   percentage to set the brightness level to (without the percentage sign).
+#                         may also prefix with + or - if delta change is wanted.
+#
+# @returns {void}
+set_brightness() {
+    local val
+
+    val="${1%\%*}"  # strip trailing % if it was (mistakenly) given
+    if [[ "$val" =~ ^[0-9]{1,3}$ ]]; then
+        val="[\"set\",$val]"
+    elif [[ "$val" =~ ^[-+][0-9]{1,3}$ ]]; then
+        val="[\"delta\",$((val))]"
+    else
+        echo -e "illegal brightness arg provided: [$val]" 1>&2
+        return 1
+    fi
+
+    socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/bctl/bctld-ipc.sock <<< "$val"
+}
 ```
 
 Please note there will be no guarantees about the stability of this api as it's

@@ -101,7 +101,8 @@ async def sync_displays() -> None:
 
     target: int = CONF.get('state').get('last_set_brightness')
     if target == -1:  # i.e. we haven't explicitly set it to anything yet
-        match CONF.get('sync_strategy'):
+        strat = CONF.get('sync_strategy')
+        match strat:
             case 'MEAN':
                 target = int(fmean(values))
             case 'LOW':
@@ -109,7 +110,15 @@ async def sync_displays() -> None:
             case 'HIGH':
                 target = max(values)
             case _:
-                raise FatalErr(f'misconfigured brightness sync strategy [{CONF.get("sync_strategy")}]')
+                if strat.startswith('MODEL:'):
+                    d = next((d for d in DISPLAYS if d.name == strat[strat.find('MODEL:') + len('MODEL:'):]), None)
+                    if d is not None:
+                        target = d.get_brightness()
+                    else:
+                        LOGGER.info(f'cannot sync brightnesses as target display [{strat}] is not connected/detected')
+                        return
+                else:
+                    raise FatalErr(f'misconfigured brightness sync strategy [{strat}]')
 
     LOGGER.debug(f'syncing brightnesses at {target}%')
     await TASK_QUEUE.put(['set', target])
@@ -361,6 +370,17 @@ async def process_client_commands() -> None:
                 case ['getvcp', *params]:
                     await vcp_op(lambda d: d._get_vcp_feature(*params),
                                  lambda futures, displays: [0, *[f'{displays[i].id},{j.result()}' for i, j in enumerate(futures)]])
+                case ['init-block', retries, retry_sleep]:
+                    payload: list[int] = [1]
+                    for attempt in reversed(range(1 + retries)):
+                        try:
+                            await init_displays()
+                            payload = [0]
+                            break
+                        except Exception:
+                            if attempt and retry_sleep:
+                                await asyncio.sleep(retry_sleep)
+                    await _send_response(payload)
                 case _:
                     LOGGER.debug(f'placing task in queue...')
                     await TASK_QUEUE.put(data)

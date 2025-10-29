@@ -124,6 +124,24 @@ def init(ctx):
     ctx.send_cmd(['init'])
 
 
+@main.command('init-block')
+@click.pass_obj
+@click.option(
+    '-r', '--retry',
+    default=0,
+    help='how many times to retry operation')
+@click.option(
+    '-s', '--sleep',
+    default=0.5,
+    help='how many seconds to sleep between retries')
+def init_block(ctx, retry: int, sleep: float):
+    """Re-initialize displays, blocking.
+
+    :param ctx: context
+    """
+    ctx.send_receive_cmd(['init-block', retry, sleep])
+
+
 @main.command
 @click.pass_obj
 def sync(ctx):

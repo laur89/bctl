@@ -13,8 +13,8 @@ class SimConf(TypedDict):
 class State(TypedDict):
     timestamp: int
     ver: int
-    last_set_brightness: int
-
+    last_set_brightness: int  # value we've set all displays' brightnesses (roughly) to;
+                              # -1 if brightnesses differ or we haven't set brightness using bctl yet
 
 class NotifyIconConf(TypedDict):
     error: str
@@ -43,6 +43,7 @@ class Conf(TypedDict):
     periodic_init_sec: int
     sync_brightness: bool
     sync_strategy: str
+    get_strategy: str
     notify: NotifyConf
     udev_event_debounce_sec: float
     msg_consumption_window_sec: float
@@ -82,6 +83,8 @@ default_conf: Conf = {
     'sync_brightness': False,  # keep all displays' brightnesses at same value/synchronized
     'sync_strategy': 'MEAN',  # if displays' brightnesses differ and are synced, what value to sync them to; only active if sync_brightness=True;
                               # 'MEAN' = set to arithmetic mean, 'LOW' = set to lowest, 'HIGH' = set to highest
+    'get_strategy': 'MEAN',   # if displays' brightnesses differ and are queried (via get command), what single value to return to represent current brightness level;
+                              # 'MEAN' = return arithmetic mean, 'LOW' = return lowest, 'HIGH' = return highest
     'notify': {
         'enabled': True,
         'on_fatal_err': True,  # whether desktop notifications should be shown on fatal errors

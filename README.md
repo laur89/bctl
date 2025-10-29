@@ -27,7 +27,7 @@ methods, [explained below](#managing-external-displays). As the recommended
 method -- ddcutil -- takes in some cases non-trivial amount of time to execute
 (up to ~200ms), it can be slightly jarring to change brightness when spamming the key.
 
-As this solution caches set brighness values there's no need to query it
+As this solution caches set brightness values there's no need to query it
 from ddcutil, making e.g. desktop notification generation simpler.
 
 Also screen connections & disconnections are kept track of via an udev monitor,
@@ -135,7 +135,9 @@ Some examples:
 - `bctl set +20` - bump brightness up by 20%
 - `bctl set -- -20` - bump brightness down by 20%
 - `bctl set 55` - set brightness to 55%
-- `bctl get` - returns current brightness level in %
+- `bctl get` - returns current brightness level in %; see the `get_strategy` config
+               item in [config.py](./bctl/config.py) to set how differing
+               brightnesses get consolidated into a single int
 - `bctl setvcp D6 01` - set vcp feature D6 to value 01 for all detected DDC displays;
   this is simply shortcut for `ddcutil setvcp D6 01`
 

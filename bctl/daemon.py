@@ -85,8 +85,12 @@ async def init_displays() -> None:
 
     DISPLAYS = displays
     LOGGER.debug(f'...initialized {len(displays)} display{"" if len(displays) == 1 else "s"}')
+
     if CONF.get('sync_brightness'):
         await sync_displays()
+    elif CONF.get('state')['last_set_brightness'] != -1 and not same_values([d.get_brightness() for d in DISPLAYS]):
+        CONF.get('state')['last_set_brightness'] = -1  # reset, as potentially newly added display could have a different value
+
     LAST_INIT_TIME = unix_time_now()
 
 
@@ -380,11 +384,34 @@ async def terminate():
         # os._exit(0)
 
 
-# TODO: should we return CONF.get('state').get('last_set_brightness') for single display?
-def get_brightness(individual: bool, raw: bool) -> list[str|int]:
-    if individual:
-        return [f'{d.id},{d.get_brightness(raw)}' for d in DISPLAYS]
-    return [DISPLAYS[0].get_brightness(raw)] if DISPLAYS else []
+def get_brightness(individual: bool, raw: bool) -> list[str|int|list[str|int]]:
+    if not DISPLAYS:
+        return []
+    elif individual:
+        # return [f'{d.id},{d.get_brightness(raw)}' for d in DISPLAYS]
+        return [[d.id, d.get_brightness(raw)] for d in DISPLAYS]
+
+    # either ignore last_set_brightness... {
+    # values: list[int] = [d.get_brightness(raw) for d in DISPLAYS]
+    # if same_values(values):
+        # val = values[0]
+    # else:
+    # } ...or use it: {
+    val: int = CONF.get('state').get('last_set_brightness')
+    if val == -1:  # i.e. we haven't explicitly set it to anything yet
+        values: list[int] = [d.get_brightness(raw) for d in DISPLAYS]
+    #}
+        match CONF.get('get_strategy'):
+            case 'MEAN':
+                val = int(fmean(values))
+            case 'LOW':
+                val = min(values)
+            case 'HIGH':
+                val = max(values)
+            case _:
+                raise FatalErr(f'misconfigured brightness get strategy [{CONF.get("get_strategy")}]')
+
+    return [val]
 
 
 async def periodic_init(period: int) -> NoReturn:

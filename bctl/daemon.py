@@ -15,6 +15,7 @@ from typing import NoReturn, Callable, Coroutine
 from tendo import singleton
 from pathlib import Path
 from statistics import fmean
+from contextlib import suppress
 import aiofiles.os as aios
 from .debouncer import Debouncer
 from .udev_monitor import monitor_udev_events
@@ -89,7 +90,7 @@ async def init_displays() -> None:
 
     if CONF.get('sync_brightness'):
         await sync_displays()
-    elif CONF.get('state')['last_set_brightness'] != -1 and not same_values([d.get_brightness() for d in DISPLAYS]):
+    elif not same_values([d.get_brightness() for d in DISPLAYS]):
         CONF.get('state')['last_set_brightness'] = -1  # reset, as potentially newly added display could have a different value
 
     LAST_INIT_TIME = unix_time_now()
@@ -111,15 +112,16 @@ async def sync_displays() -> None:
             case 'HIGH':
                 target = max(values)
             case _:
-                if strat.startswith('MODEL:'):
-                    d = next((d for d in DISPLAYS if d.name == strat[strat.find('MODEL:') + len('MODEL:'):]), None)
+                prefix = 'MODEL:'
+                if strat.startswith(prefix):
+                    d = next((d for d in DISPLAYS if d.name == strat[strat.find(prefix) + len(prefix):]), None)
                     if d is not None:
                         target = d.get_brightness()
                     else:
                         LOGGER.info(f'cannot sync brightnesses as target display [{strat}] is not connected/detected')
                         return
                 else:
-                    raise FatalErr(f'misconfigured brightness sync strategy [{strat}]')
+                    raise FatalErr(f'misconfigured brightness sync strategy [{strat}]; should start with [{prefix}] prefix')
 
     LOGGER.debug(f'syncing brightnesses at {target}%')
     await TASK_QUEUE.put(['set', target])
@@ -335,9 +337,9 @@ async def process_q() -> NoReturn:
 async def process_client_commands() -> None:
     async def process_client_command(reader, writer):
         async def _send_response(payload: list):
-            response = json.dumps(payload, separators=(',', ':')).encode()
+            response = json.dumps(payload, separators=(',', ':'))
             LOGGER.debug(f'responding: {response}')
-            writer.write(response)
+            writer.write(response.encode())
             await writer.drain()
             writer.write_eof()
             writer.close()
@@ -366,10 +368,8 @@ async def process_client_commands() -> None:
                 case ['get', individual, raw]:
                     payload = [1]
                     async with SEMAPHORE:
-                        try:
+                        with suppress(Exception):
                             payload = [0, *get_brightness(individual, raw)]
-                        except Exception:
-                            pass
                     await _send_response(payload)
                 case ['setvcp', *params]:
                     async with SEMAPHORE:
@@ -475,21 +475,18 @@ async def run() -> None:
                                     lambda: tg.create_task(terminate()))
             loop.add_signal_handler(signal.SIGTERM,
                                     lambda: tg.create_task(terminate()))
-    except* Exception as exc_group:
+    except* (ExitableErr, FatalErr) as exc_group:
         LOGGER.debug(f'{len(exc_group.exceptions)} errs caught in exc group')
         await write_state(CONF)
 
         ee = exc_group.exceptions[0]
-        if isinstance(ee, FatalErr):
-            if isinstance(ee, ExitableErr):
-                exit_code: int = ee.exit_code
-            else:
-                exit_code: int = CONF.get('fatal_exit_code')
-            LOGGER.debug(f'FatalErr caught, exiting with code {exit_code}...')
-            await NOTIF.notify_err(ee)
-            sys.exit(exit_code)
+        if isinstance(ee, ExitableErr):
+            exit_code: int = ee.exit_code
         else:
-            raise
+            exit_code: int = CONF.get('fatal_exit_code')
+        LOGGER.debug(f'{type(ee).__name__} caught, exiting with code {exit_code}...')
+        await NOTIF.notify_err(ee)
+        sys.exit(exit_code)
 
 
 # top-level err handler that's caught for stuff ran prior to task group.

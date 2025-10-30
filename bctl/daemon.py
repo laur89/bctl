@@ -10,7 +10,7 @@ import functools
 import glob
 from logging import Logger
 from types import TracebackType
-from asyncio import AbstractEventLoop, Task, Queue
+from asyncio import AbstractEventLoop, Task, Queue, BoundedSemaphore as Semaphore
 from typing import NoReturn, Callable, Coroutine
 from tendo import singleton
 from pathlib import Path
@@ -30,6 +30,7 @@ from .notify import Notif
 
 DISPLAYS: list[Display]
 TASK_QUEUE: Queue[list]
+SEMAPHORE: Semaphore
 CONF: Conf
 LOGGER: Logger = logging.getLogger(__name__)
 NOTIF: Notif
@@ -327,7 +328,8 @@ async def process_q() -> NoReturn:
                 tasks.append(t)
             except TimeoutError:
                 break
-        await execute_tasks(tasks)
+        async with SEMAPHORE:
+            await execute_tasks(tasks)
 
 
 async def process_client_commands() -> None:
@@ -362,26 +364,31 @@ async def process_client_commands() -> None:
             LOGGER.debug(f'received task {data} from client')
             match data:
                 case ['get', individual, raw]:
-                    try:
-                        payload = [0, *get_brightness(individual, raw)]
-                    except Exception:
-                        payload = [1]
+                    payload = [1]
+                    async with SEMAPHORE:
+                        try:
+                            payload = [0, *get_brightness(individual, raw)]
+                        except Exception:
+                            pass
                     await _send_response(payload)
                 case ['setvcp', *params]:
-                    await vcp_op(lambda d: d._set_vcp_feature(*params), lambda *_: [0])
+                    async with SEMAPHORE:
+                        await vcp_op(lambda d: d._set_vcp_feature(*params), lambda *_: [0])
                 case ['getvcp', *params]:
-                    await vcp_op(lambda d: d._get_vcp_feature(*params),
-                                 lambda futures, displays: [0, *[f'{displays[i].id},{j.result()}' for i, j in enumerate(futures)]])
+                    async with SEMAPHORE:
+                        await vcp_op(lambda d: d._get_vcp_feature(*params),
+                                    lambda futures, displays: [0, *[f'{displays[i].id},{j.result()}' for i, j in enumerate(futures)]])
                 case ['init-block', retries, retry_sleep]:
                     payload: list[int] = [1]
-                    for attempt in reversed(range(1 + retries)):
-                        try:
-                            await init_displays()
-                            payload = [0]
-                            break
-                        except Exception:
-                            if attempt and retry_sleep:
-                                await asyncio.sleep(retry_sleep)
+                    async with SEMAPHORE:
+                        for attempt in reversed(range(1 + retries)):
+                            try:
+                                await init_displays()
+                                payload = [0]
+                                break
+                            except Exception:
+                                if attempt and retry_sleep:
+                                    await asyncio.sleep(retry_sleep)
                     await _send_response(payload)
                 case _:
                     LOGGER.debug(f'placing task in queue...')
@@ -499,6 +506,7 @@ def root_exception_handler(type_: type[BaseException], value: BaseException, tbt
 def main(debug=False, sim_conf: SimConf|None = None) -> None:
     global LOCK
     global TASK_QUEUE
+    global SEMAPHORE
     global CONF
     global NOTIF
 
@@ -506,6 +514,7 @@ def main(debug=False, sim_conf: SimConf|None = None) -> None:
 
     LOCK = singleton.SingleInstance()
     TASK_QUEUE = asyncio.Queue()
+    SEMAPHORE = Semaphore(1)
 
     CONF = load_config(load_state=True)
     CONF['sim'] = sim_conf
